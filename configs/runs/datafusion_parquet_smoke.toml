@@ -1,0 +1,6 @@
+run_name = "datafusion_parquet_smoke"
+engine = "datafusion"
+workload_path = "workloads/clickstream/workload.yaml"
+dataset_manifest_path = "datasets/generated/clickstream_small/parquet/manifest.json"
+repetitions = 3
+capture_plans = false

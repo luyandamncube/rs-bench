@@ -1,0 +1,16 @@
+[package]
+name = "bm-engine-clickhouse"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+bm-engine = { path = "../../crates/bm-engine" }
+chrono.workspace = true
+tokio.workspace = true
+serde.workspace = true
+clickhouse = "0.14.2"
+csv = "1"
+toml.workspace = true
+parquet = "53"
+arrow-array = "53"

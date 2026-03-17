@@ -1,0 +1,18 @@
+name = "clickstream_small"
+family = "clickstream"
+seed = 42
+rows = 10000000
+format = "csv"
+output_dir = "datasets/generated/clickstream_small"
+formats = ["csv", "jsonl", "parquet"]
+
+[cardinality]
+users = 10000
+sessions = 50000
+pages = 500
+countries = 12
+referrers = 8
+
+[distributions]
+null_ratio = 0.0
+skew = "medium"

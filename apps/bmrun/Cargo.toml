@@ -1,0 +1,17 @@
+[package]
+name = "bmrun"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+clap.workspace = true
+anyhow.workspace = true
+chrono.workspace = true
+tokio.workspace = true
+toml.workspace = true
+bm-runner = { path = "../../crates/bm-runner" }
+bm-engine = { path = "../../crates/bm-engine" }
+bm-engine-datafusion = { path = "../../engines/datafusion" }
+bm-engine-duckdb = { path = "../../engines/duckdb" }
+bm-engine-clickhouse = { path = "../../engines/clickhouse" }

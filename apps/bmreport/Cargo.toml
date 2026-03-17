@@ -1,0 +1,10 @@
+[package]
+name = "bmreport"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+clap.workspace = true
+anyhow.workspace = true
+bm-report = { path = "../../crates/bm-report" }

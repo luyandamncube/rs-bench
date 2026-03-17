@@ -1,0 +1,37 @@
+[workspace]
+members = [
+  "apps/bmgen",
+  "apps/bmrun",
+  "apps/bmreport",
+  "crates/bm-core",
+  "crates/bm-schema",
+  "crates/bm-engine",
+  "crates/bm-generator",
+  "crates/bm-runner",
+  "crates/bm-report",
+  "engines/datafusion",
+  "engines/duckdb",
+  "engines/clickhouse",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[workspace.dependencies]
+anyhow = "1"
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+toml = "0.8"
+clap = { version = "4", features = ["derive"] }
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+sha2 = "0.10"
+sysinfo = "0.30"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }

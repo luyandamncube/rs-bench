@@ -1,0 +1,5 @@
+url = "http://localhost:8123"
+database = "benchmark"
+user = "benchmark"
+password = "benchmark"
+table_name = "benchmark_table"

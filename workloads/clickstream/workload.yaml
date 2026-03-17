@@ -1,0 +1,16 @@
+name: clickstream_core
+family: clickstream
+description: Small clickstream smoke workload
+queries:
+  - id: q01
+    name: session_filter
+    category: scan_filter
+    file: q01_session_filter.sql
+  - id: q02
+    name: events_by_device
+    category: group_by
+    file: q02_events_by_device.sql
+  - id: q03
+    name: revenue_by_event_type
+    category: aggregation
+    file: q03_revenue_by_event_type.sql

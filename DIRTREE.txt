@@ -1,0 +1,187 @@
+rs-bench/
+├── Cargo.toml
+├── Cargo.lock
+├── README.md
+├── docker-compose.yml
+├── rust-toolchain.toml
+├── .gitignore
+│
+├── apps/
+│   ├── bmgen/
+│   │   ├── Cargo.toml
+│   │   └── src/
+│   │       └── main.rs
+│   ├── bmrun/
+│   │   ├── Cargo.toml
+│   │   └── src/
+│   │       └── main.rs
+│   └── bmreport/
+│       ├── Cargo.toml
+│       └── src/
+│           └── main.rs
+│
+├── crates/
+│   ├── bm-core/
+│   │   ├── Cargo.toml
+│   │   └── src/
+│   │       ├── lib.rs
+│   │       ├── config.rs
+│   │       ├── ids.rs
+│   │       ├── error.rs
+│   │       └── hashing.rs
+│   │
+│   ├── bm-schema/
+│   │   ├── Cargo.toml
+│   │   └── src/
+│   │       ├── lib.rs
+│   │       ├── dataset.rs
+│   │       ├── workload.rs
+│   │       ├── run.rs
+│   │       ├── raw_result.rs
+│   │       ├── summary.rs
+│   │       └── ranking.rs
+│   │
+│   ├── bm-engine/
+│   │   ├── Cargo.toml
+│   │   └── src/
+│   │       ├── lib.rs
+│   │       ├── adapter.rs
+│   │       ├── request.rs
+│   │       ├── response.rs
+│   │       └── validation.rs
+│   │
+│   ├── bm-generator/
+│   │   ├── Cargo.toml
+│   │   └── src/
+│   │       ├── lib.rs
+│   │       ├── families/
+│   │       │   ├── clickstream.rs
+│   │       │   ├── logs.rs
+│   │       │   └── iot.rs
+│   │       ├── distributions.rs
+│   │       ├── nulls.rs
+│   │       ├── skew.rs
+│   │       ├── writer_csv.rs
+│   │       ├── writer_parquet.rs
+│   │       └── manifest.rs
+│   │
+│   ├── bm-runner/
+│   │   ├── Cargo.toml
+│   │   └── src/
+│   │       ├── lib.rs
+│   │       ├── runner.rs
+│   │       ├── orchestrator.rs
+│   │       ├── timing.rs
+│   │       ├── persistence.rs
+│   │       └── fairness.rs
+│   │
+│   └── bm-report/
+│       ├── Cargo.toml
+│       └── src/
+│           ├── lib.rs
+│           ├── summarize.rs
+│           ├── rank.rs
+│           ├── charts.rs
+│           ├── markdown.rs
+│           └── terminal.rs
+│
+├── engines/
+│   ├── datafusion/
+│   │   ├── Cargo.toml
+│   │   └── src/
+│   │       ├── lib.rs
+│   │       ├── adapter.rs
+│   │       ├── prepare.rs
+│   │       └── query.rs
+│   ├── duckdb/
+│   │   ├── Cargo.toml
+│   │   └── src/
+│   │       ├── lib.rs
+│   │       ├── adapter.rs
+│   │       ├── prepare.rs
+│   │       └── query.rs
+│   └── clickhouse/
+│       ├── Cargo.toml
+│       └── src/
+│           ├── lib.rs
+│           ├── adapter.rs
+│           ├── prepare.rs
+│           └── query.rs
+│
+├── workloads/
+│   ├── clickstream/
+│   │   ├── workload.yaml
+│   │   ├── q01_session_filter.sql
+│   │   ├── q02_events_by_device.sql
+│   │   ├── q03_top_pages.sql
+│   │   ├── q04_funnel_agg.sql
+│   │   └── overrides/
+│   │       ├── duckdb/
+│   │       └── clickhouse/
+│   ├── logs/
+│   │   ├── workload.yaml
+│   │   ├── q01_level_filter.sql
+│   │   ├── q02_service_groupby.sql
+│   │   ├── q03_top_errors.sql
+│   │   └── q04_time_bucket.sql
+│   └── iot/
+│       ├── workload.yaml
+│       ├── q01_recent_window.sql
+│       ├── q02_device_rollup.sql
+│       ├── q03_spike_detection.sql
+│       └── q04_bucket_avg.sql
+│
+├── configs/
+│   ├── datasets/
+│   │   ├── clickstream_small.toml
+│   │   ├── logs_small.toml
+│   │   └── iot_small.toml
+│   ├── runs/
+│   │   ├── local_datafusion.toml
+│   │   ├── local_duckdb.toml
+│   │   ├── local_clickhouse.toml
+│   │   └── comparison_smoke.toml
+│   └── engines/
+│       ├── datafusion.toml
+│       ├── duckdb.toml
+│       └── clickhouse.toml
+│
+├── datasets/
+│   ├── generated/
+│   └── fixtures/
+│
+├── results/
+│   ├── runs/
+│   ├── summaries/
+│   ├── rankings/
+│   └── charts/
+│
+├── scripts/
+│   ├── dev/
+│   │   ├── bootstrap_clickhouse.sh
+│   │   ├── run_smoke.sh
+│   │   └── compare_all.sh
+│   └── ci/
+│       ├── smoke_benchmark.sh
+│       └── validate_workloads.sh
+│
+├── docs/
+│   ├── architecture.md
+│   ├── fairness_policy.md
+│   ├── workload_authoring.md
+│   ├── dataset_families.md
+│   ├── result_schema.md
+│   └── phases/
+│       ├── PHASE_0_FOUNDATION.md
+│       ├── PHASE_1_GENERATOR.md
+│       ├── PHASE_2_RUNNER.md
+│       ├── PHASE_3_REPORTING.md
+│       └── PHASE_4_ENGINE_EXPANSION.md
+│
+└── tests/
+    ├── integration/
+    │   ├── smoke_datafusion.rs
+    │   ├── smoke_duckdb.rs
+    │   ├── smoke_clickhouse.rs
+    │   └── cross_engine_validation.rs
+    └── fixtures/

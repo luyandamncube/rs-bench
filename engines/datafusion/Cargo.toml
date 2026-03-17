@@ -1,0 +1,11 @@
+[package]
+name = "bm-engine-datafusion"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+bm-engine = { path = "../../crates/bm-engine" }
+chrono.workspace = true
+tokio.workspace = true
+datafusion = "50"

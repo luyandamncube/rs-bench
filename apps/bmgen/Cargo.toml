@@ -1,0 +1,13 @@
+[package]
+name = "bmgen"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+clap.workspace = true
+anyhow.workspace = true
+toml.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+bm-generator = { path = "../../crates/bm-generator" }

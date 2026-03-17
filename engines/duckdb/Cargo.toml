@@ -1,0 +1,10 @@
+[package]
+name = "bm-engine-duckdb"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+bm-engine = { path = "../../crates/bm-engine" }
+chrono.workspace = true
+duckdb = { version = "1.4.1", features = ["bundled"] }
