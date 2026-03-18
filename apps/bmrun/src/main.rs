@@ -7,6 +7,8 @@ use bm_engine::response::*;
 use bm_engine_datafusion::DataFusionAdapter;
 use bm_engine_duckdb::DuckDbAdapter;
 use bm_engine_clickhouse::ClickHouseAdapter;
+use bm_engine_polars::PolarsAdapter;
+use bm_engine_spark::SparkAdapter;
 use bm_runner::run_benchmark;
 use chrono::Utc;
 use clap::{Parser, Subcommand};
@@ -122,6 +124,14 @@ fn main() -> Result<()> {
                 }
                 "clickhouse" => {
                     let mut adapter = ClickHouseAdapter::new();
+                    run_benchmark(&config, &mut adapter)?
+                }
+                "polars" => {
+                    let mut adapter = PolarsAdapter::new();
+                    run_benchmark(&config, &mut adapter)?
+                }
+                "spark" => {
+                    let mut adapter = SparkAdapter::new();
                     run_benchmark(&config, &mut adapter)?
                 }
                 other => anyhow::bail!("unsupported engine: {other}"),

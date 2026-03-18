@@ -26,8 +26,6 @@ run_and_capture_container() {
 
   tmpfile=$(mktemp)
 
-  # Send full container output to stderr for visibility,
-  # but only capture the Results line into run_dir.
   docker compose -f "$COMPOSE_FILE" run --rm "$service" \
     2>&1 | tee /dev/stderr >"$tmpfile"
 
@@ -67,8 +65,21 @@ ch_run_dir=$(run_and_capture_container "bench-clickhouse")
 echo "ClickHouse run dir: $ch_run_dir"
 
 echo
+echo "Running Polars (containerized)..."
+polars_run_dir=$(run_and_capture_container "bench-polars")
+echo "Polars run dir: $polars_run_dir"
+
+# Uncomment once Spark produces real benchmark run outputs.
+# echo
+# echo "Running Spark (containerized)..."
+# spark_run_dir=$(run_and_capture_container "bench-spark")
+# echo "Spark run dir: $spark_run_dir"
+
+echo
 echo "Comparing latest runs..."
 cargo run -p bmreport -- compare --inputs \
   "$df_run_dir/raw_observations.jsonl" \
   "$duck_run_dir/raw_observations.jsonl" \
-  "$ch_run_dir/raw_observations.jsonl"
+  "$ch_run_dir/raw_observations.jsonl" \
+  "$polars_run_dir/raw_observations.jsonl"
+  # "$spark_run_dir/raw_observations.jsonl"

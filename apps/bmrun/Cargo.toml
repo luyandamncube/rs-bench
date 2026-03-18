@@ -15,3 +15,5 @@ bm-engine = { path = "../../crates/bm-engine" }
 bm-engine-datafusion = { path = "../../engines/datafusion" }
 bm-engine-duckdb = { path = "../../engines/duckdb" }
 bm-engine-clickhouse = { path = "../../engines/clickhouse" }
+bm-engine-polars = { path = "../../engines/polars" }
+bm-engine-spark = { path = "../../engines/spark" }

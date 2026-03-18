@@ -12,6 +12,8 @@ members = [
   "engines/datafusion",
   "engines/duckdb",
   "engines/clickhouse",
+  "engines/polars",
+  "engines/spark"
 ]
 resolver = "2"
 

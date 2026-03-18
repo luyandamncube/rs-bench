@@ -1,7 +1,7 @@
 name = "clickstream_small"
 family = "clickstream"
 seed = 42
-rows = 5000000
+rows = 1000
 format = "csv"
 output_dir = "datasets/generated/clickstream_small"
 formats = ["csv", "jsonl", "parquet"]
