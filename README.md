@@ -2,6 +2,11 @@
 
 `rs-bench` is a Rust-first benchmark harness for comparing analytics/query engines across multiple dataset formats and workload shapes.
 
+<p align="center">
+  <img src="docs/img/bench10000000.jpg"/>
+</p>
+
+
 The project is inspired by:
 - **ClickBench** for benchmark philosophy, reproducibility, and comparable reporting
 - the **DataFusion benchmark shape inside ClickBench** for keeping the execution model small, explicit, and inspectable
