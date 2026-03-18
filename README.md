@@ -2,10 +2,11 @@
 
 `rs-bench` is a Rust-first benchmark harness for comparing analytics/query engines across multiple dataset formats and workload shapes.
 
-<p align="center">
-  <img src="docs/img/bench10000000.jpg"/>
-</p>
+### Sample: Clickhouse vs. Datafusion vs. Duckdb vs. Polars (10 000 000 rows)
 
+<p align="center">
+  <img src="docs/img/bench10000000.png"/>
+</p>
 
 The project is inspired by:
 - **ClickBench** for benchmark philosophy, reproducibility, and comparable reporting
