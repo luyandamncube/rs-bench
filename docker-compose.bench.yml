@@ -1,0 +1,99 @@
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: bm-clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_DB: benchmark
+      CLICKHOUSE_USER: benchmark
+      CLICKHOUSE_PASSWORD: benchmark
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    cpus: 2.0
+    mem_limit: 2g
+    memswap_limit: 2g
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8123/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+
+  bench-datafusion:
+    build:
+      context: .
+      dockerfile: docker/bench.Dockerfile
+    container_name: bm-bench-datafusion
+    working_dir: /workspace
+    command: >
+      cargo run -p bmrun -- run --config configs/runs/datafusion_parquet_smoke.toml
+    volumes:
+      - ./:/workspace
+      - cargo_registry:/usr/local/cargo/registry
+      - cargo_git:/usr/local/cargo/git
+      - target_cache:/workspace/target
+    cpus: 2.0
+    mem_limit: 2g
+    memswap_limit: 2g
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+
+  bench-duckdb:
+    build:
+      context: .
+      dockerfile: docker/bench.Dockerfile
+    container_name: bm-bench-duckdb
+    working_dir: /workspace
+    command: >
+      cargo run -p bmrun -- run --config configs/runs/duckdb_parquet_smoke.toml
+    volumes:
+      - ./:/workspace
+      - cargo_registry:/usr/local/cargo/registry
+      - cargo_git:/usr/local/cargo/git
+      - target_cache:/workspace/target
+    cpus: 2.0
+    mem_limit: 2g
+    memswap_limit: 2g
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+
+  bench-clickhouse:
+    build:
+      context: .
+      dockerfile: docker/bench.Dockerfile
+    container_name: bm-bench-clickhouse
+    working_dir: /workspace
+    command: >
+      cargo run -p bmrun -- run --config configs/runs/clickhouse_parquet_smoke.toml
+    environment:
+      CLICKHOUSE_URL: "http://clickhouse:8123"
+      CLICKHOUSE_DATABASE: "benchmark"
+      CLICKHOUSE_USER: "benchmark"
+      CLICKHOUSE_PASSWORD: "benchmark"
+      CLICKHOUSE_TABLE_NAME: "benchmark_table"
+    volumes:
+      - ./:/workspace
+      - cargo_registry:/usr/local/cargo/registry
+      - cargo_git:/usr/local/cargo/git
+      - target_cache:/workspace/target
+    cpus: 2.0
+    mem_limit: 2g
+    memswap_limit: 2g
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+
+volumes:
+  clickhouse_data:
+  cargo_registry:
+  cargo_git:
+  target_cache:

@@ -164,49 +164,39 @@ impl ClickHouseAdapter {
         Runtime::new().map_err(|e| EngineError::Other(format!("failed to create tokio runtime: {e}")))
     }
 
-    fn load_config(&mut self) -> Result<(), EngineError> {
+    fn load_config(&mut self) -> Result<(String, String, String), EngineError> {
         let path = "configs/engines/clickhouse.toml";
         let raw = fs::read_to_string(path)
             .map_err(|e| EngineError::Bootstrap(format!("failed to read clickhouse config: {e}")))?;
         let value: toml::Value = toml::from_str(&raw)
             .map_err(|e| EngineError::Bootstrap(format!("failed to parse clickhouse config: {e}")))?;
 
-        self.database = value
-            .get("database")
-            .and_then(|v| v.as_str())
-            .unwrap_or("benchmark")
-            .to_string();
+        self.database = std::env::var("CLICKHOUSE_DATABASE")
+            .ok()
+            .or_else(|| value.get("database").and_then(|v| v.as_str()).map(str::to_string))
+            .unwrap_or_else(|| "benchmark".to_string());
 
-        self.table_name = value
-            .get("table_name")
-            .and_then(|v| v.as_str())
-            .unwrap_or("benchmark_table")
-            .to_string();
+        self.table_name = std::env::var("CLICKHOUSE_TABLE_NAME")
+            .ok()
+            .or_else(|| value.get("table_name").and_then(|v| v.as_str()).map(str::to_string))
+            .unwrap_or_else(|| "benchmark_table".to_string());
 
-        let url = value
-            .get("url")
-            .and_then(|v| v.as_str())
-            .unwrap_or("http://localhost:8123");
+        let url = std::env::var("CLICKHOUSE_URL")
+            .ok()
+            .or_else(|| value.get("url").and_then(|v| v.as_str()).map(str::to_string))
+            .unwrap_or_else(|| "http://localhost:8123".to_string());
 
-        let user = value
-            .get("user")
-            .and_then(|v| v.as_str())
-            .unwrap_or("benchmark");
+        let user = std::env::var("CLICKHOUSE_USER")
+            .ok()
+            .or_else(|| value.get("user").and_then(|v| v.as_str()).map(str::to_string))
+            .unwrap_or_else(|| "benchmark".to_string());
 
-        let password = value
-            .get("password")
-            .and_then(|v| v.as_str())
-            .unwrap_or("benchmark");
+        let password = std::env::var("CLICKHOUSE_PASSWORD")
+            .ok()
+            .or_else(|| value.get("password").and_then(|v| v.as_str()).map(str::to_string))
+            .unwrap_or_else(|| "benchmark".to_string());
 
-        let client = Client::default()
-            .with_url(url)
-            .with_user(user)
-            .with_password(password)
-            .with_database(&self.database);
-
-        self.client = Some(client);
-
-        Ok(())
+        Ok((url, user, password))
     }
 }
 
@@ -222,18 +212,18 @@ impl EngineAdapter for ClickHouseAdapter {
     }
 
     fn bootstrap(&mut self, _req: BootstrapRequest) -> Result<BootstrapResponse, EngineError> {
-        self.load_config()?;
+        let (url, user, password) = self.load_config()?;
 
-        let client = self
-            .client
-            .as_ref()
-            .ok_or_else(|| EngineError::Bootstrap("client not initialized".into()))?
-            .clone();
+        // Stage 1: connect without selecting the benchmark DB yet
+        let admin_client = Client::default()
+            .with_url(url.clone())
+            .with_user(user.clone())
+            .with_password(password.clone());
 
         let rt = Self::runtime()?;
 
         rt.block_on(async {
-            client
+            admin_client
                 .query(&format!("CREATE DATABASE IF NOT EXISTS {}", self.database))
                 .execute()
                 .await
@@ -242,6 +232,14 @@ impl EngineAdapter for ClickHouseAdapter {
             Ok::<(), EngineError>(())
         })?;
 
+        // Stage 2: reconnect with the benchmark DB selected
+        let client = Client::default()
+            .with_url(url)
+            .with_user(user)
+            .with_password(password)
+            .with_database(&self.database);
+
+        self.client = Some(client);
         self.engine_version = "unknown".to_string();
 
         Ok(BootstrapResponse {
