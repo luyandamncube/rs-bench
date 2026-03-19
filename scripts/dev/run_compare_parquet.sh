@@ -4,6 +4,17 @@ set -euo pipefail
 export BENCH_FORMAT=parquet
 COMPOSE_FILE="docker-compose.bench.yml"
 
+BASE_DATASET_CONFIG="configs/datasets/clickstream_small.toml"
+TMP_DATASET_CONFIG=""
+
+cleanup() {
+  if [[ -n "${TMP_DATASET_CONFIG:-}" && -f "${TMP_DATASET_CONFIG:-}" ]]; then
+    rm -f "$TMP_DATASET_CONFIG"
+  fi
+}
+
+trap cleanup EXIT
+
 wait_for_clickhouse() {
   echo "Waiting for ClickHouse to become healthy..."
   for _ in $(seq 1 60); do
@@ -42,12 +53,37 @@ run_and_capture_container() {
   printf '%s\n' "$run_dir"
 }
 
+DATASET_CONFIG="$BASE_DATASET_CONFIG"
+
+if [[ $# -ge 1 ]]; then
+  ROWS="$1"
+  TMP_DATASET_CONFIG="configs/datasets/.clickstream_small_${ROWS}_tmp.toml"
+
+  echo "Preparing dataset config for ${ROWS} rows..."
+  awk -v rows="$ROWS" '
+    BEGIN { replaced=0 }
+    /^rows[[:space:]]*=/ {
+      print "rows = " rows
+      replaced=1
+      next
+    }
+    { print }
+    END {
+      if (replaced == 0) exit 1
+    }
+  ' "$BASE_DATASET_CONFIG" > "$TMP_DATASET_CONFIG"
+
+  DATASET_CONFIG="$TMP_DATASET_CONFIG"
+else
+  echo "Using dataset config as-is: ${BASE_DATASET_CONFIG}"
+fi
+
 echo "Building local debug binaries once..."
 cargo build -p bmgen -p bmrun -p bmreport
 
 echo
 echo "Generating dataset materializations..."
-./target/debug/bmgen generate --config configs/datasets/clickstream_small.toml
+./target/debug/bmgen generate --config "$DATASET_CONFIG"
 
 echo
 echo "Starting ClickHouse with constrained resources..."

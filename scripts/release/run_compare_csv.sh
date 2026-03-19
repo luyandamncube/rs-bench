@@ -5,6 +5,21 @@ export BENCH_FORMAT=csv
 COMPOSE_FILE="docker-compose.bench.release.yml"
 COMPOSE_PROJECT="rs-bench-release"
 
+BASE_DATASET_CONFIG="configs/datasets/clickstream_small.toml"
+TMP_DATASET_CONFIG=""
+
+cleanup() {
+  if [[ -n "${TMP_DATASET_CONFIG:-}" && -f "${TMP_DATASET_CONFIG:-}" ]]; then
+    rm -f "$TMP_DATASET_CONFIG"
+  fi
+
+  echo
+  echo "Cleaning up release containers..."
+  docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" down
+}
+
+trap cleanup EXIT
+
 wait_for_clickhouse() {
   echo "Waiting for ClickHouse to become healthy..."
   for _ in $(seq 1 60); do
@@ -49,8 +64,36 @@ run_and_capture_container() {
   printf '%s\n' "$run_dir"
 }
 
+DATASET_CONFIG="$BASE_DATASET_CONFIG"
+
+if [[ $# -ge 1 ]]; then
+  ROWS="$1"
+  TMP_DATASET_CONFIG="configs/datasets/.clickstream_small_${ROWS}_tmp.toml"
+
+  echo "Preparing dataset config for ${ROWS} rows..."
+  awk -v rows="$ROWS" '
+    BEGIN { replaced=0 }
+    /^rows[[:space:]]*=/ {
+      print "rows = " rows
+      replaced=1
+      next
+    }
+    { print }
+    END {
+      if (replaced == 0) exit 1
+    }
+  ' "$BASE_DATASET_CONFIG" > "$TMP_DATASET_CONFIG"
+
+  DATASET_CONFIG="$TMP_DATASET_CONFIG"
+else
+  echo "Using dataset config as-is: ${BASE_DATASET_CONFIG}"
+fi
+
+echo "Generating dataset materializations..."
+cargo run -q -p bmgen -- generate --config "$DATASET_CONFIG"
+
 echo "Starting ClickHouse..."
-docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" up -d --remove-orphans clickhouse-release
+docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" up -d clickhouse-release
 wait_for_clickhouse
 
 echo
@@ -82,7 +125,3 @@ docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" run --rm \
   "$duck_run_dir/raw_observations.jsonl" \
   "$ch_run_dir/raw_observations.jsonl" \
   "$polars_run_dir/raw_observations.jsonl"
-
-echo
-echo "Cleaning up release containers..."
-docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" down
