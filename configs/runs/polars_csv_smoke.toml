@@ -1,0 +1,6 @@
+run_name = "polars_csv_smoke"
+engine = "polars"
+workload_path = "workloads/clickstream/workload.yaml"
+dataset_manifest_path = "datasets/generated/clickstream_small/csv/manifest.json"
+repetitions = 3
+capture_plans = false

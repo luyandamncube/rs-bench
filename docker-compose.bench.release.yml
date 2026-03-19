@@ -1,0 +1,69 @@
+services:
+  clickhouse-release:
+    image: clickhouse/clickhouse-server:latest
+    container_name: bm-clickhouse-release
+    environment:
+      CLICKHOUSE_DB: benchmark
+      CLICKHOUSE_USER: benchmark
+      CLICKHOUSE_PASSWORD: benchmark
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    cpus: 6.0
+    mem_limit: 8g
+    memswap_limit: 8g
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8123/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+
+  datafusion-release:
+    &bench_release_base
+    image: rs-bench-bmrun-release:latest
+    build:
+      context: .
+      dockerfile: docker/bench.release.Dockerfile
+    working_dir: /workspace
+    volumes:
+      - ./configs:/workspace/configs:ro
+      - ./workloads:/workspace/workloads:ro
+      - ./datasets:/workspace/datasets:ro
+      - ./results:/workspace/results
+    cpus: 6.0
+    mem_limit: 8g
+    memswap_limit: 8g
+    depends_on:
+      clickhouse-release:
+        condition: service_healthy
+    command: >
+      /usr/local/bin/bmrun run --config configs/runs/datafusion_${BENCH_FORMAT}_smoke.toml
+
+  duckdb-release:
+    <<: *bench_release_base
+    command: >
+      /usr/local/bin/bmrun run --config configs/runs/duckdb_${BENCH_FORMAT}_smoke.toml
+
+  clickhouse-client-release:
+    <<: *bench_release_base
+    environment:
+      CLICKHOUSE_URL: "http://clickhouse-release:8123"
+      CLICKHOUSE_DATABASE: "benchmark"
+      CLICKHOUSE_USER: "benchmark"
+      CLICKHOUSE_PASSWORD: "benchmark"
+      CLICKHOUSE_TABLE_NAME: "benchmark_table"
+    command: >
+      /usr/local/bin/bmrun run --config configs/runs/clickhouse_${BENCH_FORMAT}_smoke.toml
+
+  polars-release:
+    <<: *bench_release_base
+    command: >
+      /usr/local/bin/bmrun run --config configs/runs/polars_${BENCH_FORMAT}_smoke.toml
+
+volumes:
+  clickhouse_data:

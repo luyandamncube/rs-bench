@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export BENCH_FORMAT=csv
 COMPOSE_FILE="docker-compose.bench.yml"
 
 wait_for_clickhouse() {
@@ -41,8 +42,12 @@ run_and_capture_container() {
   printf '%s\n' "$run_dir"
 }
 
+echo "Building local debug binaries once..."
+cargo build -p bmgen -p bmrun -p bmreport
+
+echo
 echo "Generating dataset materializations..."
-cargo run -q -p bmgen -- generate --config configs/datasets/clickstream_small.toml
+./target/debug/bmgen generate --config configs/datasets/clickstream_small.toml
 
 echo
 echo "Starting ClickHouse with constrained resources..."
@@ -50,36 +55,33 @@ docker compose -f "$COMPOSE_FILE" up -d clickhouse
 wait_for_clickhouse
 
 echo
-echo "Running DataFusion (containerized)..."
+echo "Running DataFusion (containerized, CSV)..."
 df_run_dir=$(run_and_capture_container "bench-datafusion")
 echo "DataFusion run dir: $df_run_dir"
 
 echo
-echo "Running DuckDB (containerized)..."
+echo "Running DuckDB (containerized, CSV)..."
 duck_run_dir=$(run_and_capture_container "bench-duckdb")
 echo "DuckDB run dir: $duck_run_dir"
 
 echo
-echo "Running ClickHouse benchmark client (containerized)..."
+echo "Running ClickHouse benchmark client (containerized, CSV)..."
 ch_run_dir=$(run_and_capture_container "bench-clickhouse")
 echo "ClickHouse run dir: $ch_run_dir"
 
 echo
-echo "Running Polars (containerized)..."
+echo "Running Polars (containerized, CSV)..."
 polars_run_dir=$(run_and_capture_container "bench-polars")
 echo "Polars run dir: $polars_run_dir"
 
-# Uncomment once Spark produces real benchmark run outputs.
-# echo
-# echo "Running Spark (containerized)..."
-# spark_run_dir=$(run_and_capture_container "bench-spark")
-# echo "Spark run dir: $spark_run_dir"
-
 echo
-echo "Comparing latest runs..."
-cargo run -p bmreport -- compare --inputs \
+echo "Comparing latest CSV runs..."
+./target/debug/bmreport compare --inputs \
   "$df_run_dir/raw_observations.jsonl" \
   "$duck_run_dir/raw_observations.jsonl" \
   "$ch_run_dir/raw_observations.jsonl" \
   "$polars_run_dir/raw_observations.jsonl"
-  # "$spark_run_dir/raw_observations.jsonl"
+
+# echo
+# echo "Cleaning up dev containers..."
+# docker compose -f "$COMPOSE_FILE" down

@@ -8,4 +8,7 @@ RUN apt-get update && apt-get install -y \
     clang \
     cmake \
     build-essential \
+    wget \
     && rm -rf /var/lib/apt/lists/*
+
+CMD ["bash"]
