@@ -78,8 +78,12 @@ else
   echo "Using dataset config as-is: ${BASE_DATASET_CONFIG}"
 fi
 
-echo "Building local debug binaries once..."
-cargo build -p bmgen -p bmrun -p bmreport
+echo "Building local host tools..."
+cargo build -p bmgen -p bmreport
+
+echo "Building container debug runner into shared Docker target cache..."
+docker compose -f "$COMPOSE_FILE" run --rm --no-deps bench-datafusion \
+  cargo build -p bmrun
 
 echo
 echo "Generating dataset materializations..."

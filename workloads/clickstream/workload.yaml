@@ -14,3 +14,19 @@ queries:
     name: revenue_by_event_type
     category: aggregation
     file: q03_revenue_by_event_type.sql
+  - id: q04
+    name: funnel_agg
+    category: funnel_aggregation
+    file: q04_funnel_agg.sql
+  - id: q05
+    name: sessionized_topn
+    category: ranked_aggregation
+    file: q05_sessionized_topn.sql
+  - id: q06
+    name: country_referrer_rank
+    category: window_ranking
+    file: q06_country_referrer_rank.sql
+  - id: q07
+    name: session_funnel_reduce
+    category: multi_stage_aggregation
+    file: q07_session_funnel_reduce.sql

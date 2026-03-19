@@ -89,6 +89,13 @@ else
   echo "Using dataset config as-is: ${BASE_DATASET_CONFIG}"
 fi
 
+echo "Rebuilding release benchmark image..."
+docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" build \
+  datafusion-release \
+  duckdb-release \
+  clickhouse-client-release \
+  polars-release
+
 echo "Generating dataset materializations..."
 cargo run -q -p bmgen -- generate --config "$DATASET_CONFIG"
 
