@@ -34,9 +34,7 @@ const REFERRERS: &[&str] = &[
     "search.portal",
 ];
 
-pub fn generate_clickstream_rows(
-    config: &ClickstreamGeneratorConfig,
-) -> Vec<ClickstreamRow> {
+pub fn generate_clickstream_rows(config: &ClickstreamGeneratorConfig) -> Vec<ClickstreamRow> {
     let mut rng = StdRng::seed_from_u64(config.seed);
     let mut rows = Vec::with_capacity(config.rows as usize);
 
@@ -56,12 +54,11 @@ pub fn generate_clickstream_rows(
             page_id: rng.gen_range(1..=config.cardinality.pages),
             device_type: DEVICE_TYPES[rng.gen_range(0..DEVICE_TYPES.len())].to_string(),
             country_code: COUNTRY_CODES[rng.gen_range(
-                0..config.cardinality.countries.min(COUNTRY_CODES.len() as u32) as usize
+                0..config.cardinality.countries.min(COUNTRY_CODES.len() as u32) as usize,
             )]
             .to_string(),
-            referrer_domain: REFERRERS[rng.gen_range(
-                0..config.cardinality.referrers.min(REFERRERS.len() as u32) as usize
-            )]
+            referrer_domain: REFERRERS[rng
+                .gen_range(0..config.cardinality.referrers.min(REFERRERS.len() as u32) as usize)]
             .to_string(),
             event_type: if purchase {
                 "purchase".to_string()

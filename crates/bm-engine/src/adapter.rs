@@ -2,7 +2,8 @@
 use crate::error::EngineError;
 use crate::request::{BootstrapRequest, CleanupRequest, PrepareDatasetRequest, RunQueryRequest};
 use crate::response::{
-    BootstrapResponse, CleanupResponse, EngineMetadata, PrepareDatasetResponse, QueryExecutionResult,
+    BootstrapResponse, CleanupResponse, EngineMetadata, PrepareDatasetResponse,
+    QueryExecutionResult,
 };
 
 pub trait EngineAdapter: Send {

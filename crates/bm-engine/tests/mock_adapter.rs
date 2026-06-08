@@ -70,39 +70,47 @@ impl EngineAdapter for MockAdapter {
 fn mock_adapter_lifecycle_works() {
     let mut adapter = MockAdapter;
 
-    let boot = adapter.bootstrap(BootstrapRequest {
-        run_id: "test-run".into(),
-        capture_version: true,
-    }).unwrap();
+    let boot = adapter
+        .bootstrap(BootstrapRequest {
+            run_id: "test-run".into(),
+            capture_version: true,
+        })
+        .unwrap();
 
     assert_eq!(boot.engine_name, "mock");
 
-    let prep = adapter.prepare_dataset(PrepareDatasetRequest {
-        dataset_manifest_path: "datasets/test/manifest.json".into(),
-        dataset_name: "test".into(),
-        dataset_family: "clickstream".into(),
-        dataset_format: "parquet".into(),
-        files: vec!["part-000.parquet".into()],
-        mode: "file-backed".into(),
-    }).unwrap();
+    let prep = adapter
+        .prepare_dataset(PrepareDatasetRequest {
+            dataset_manifest_path: "datasets/test/manifest.json".into(),
+            dataset_name: "test".into(),
+            dataset_family: "clickstream".into(),
+            dataset_format: "parquet".into(),
+            files: vec!["part-000.parquet".into()],
+            mode: "file-backed".into(),
+        })
+        .unwrap();
 
     assert_eq!(prep.registered_objects[0], "mock_table");
 
-    let result = adapter.run_query(RunQueryRequest {
-        query_id: "q01".into(),
-        query_name: "test_query".into(),
-        query_category: "scan_filter".into(),
-        sql: "select 1".into(),
-        repetition: 1,
-        warm_or_cold: "cold".into(),
-        capture_plan: false,
-    }).unwrap();
+    let result = adapter
+        .run_query(RunQueryRequest {
+            query_id: "q01".into(),
+            query_name: "test_query".into(),
+            query_category: "scan_filter".into(),
+            sql: "select 1".into(),
+            repetition: 1,
+            warm_or_cold: "cold".into(),
+            capture_plan: false,
+        })
+        .unwrap();
 
     assert!(result.success);
 
-    let cleanup = adapter.cleanup(CleanupRequest {
-        run_id: "test-run".into(),
-    }).unwrap();
+    let cleanup = adapter
+        .cleanup(CleanupRequest {
+            run_id: "test-run".into(),
+        })
+        .unwrap();
 
     assert!(cleanup.success);
 }

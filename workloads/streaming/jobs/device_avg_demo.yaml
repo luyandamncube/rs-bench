@@ -1,0 +1,77 @@
+name: mini_flink_device_avg_demo
+family: clickstream_streaming_demo
+description: Terminal demo with average value per device in a 1-second window.
+source:
+  family: clickstream
+  event_time_field: event_time
+  key_field: device_type
+parse:
+  mode: synthetic_clickstream_v1
+filter:
+  field: event_type
+  op: eq
+  equals: page_view
+schema:
+  - name: event_time
+    data_type: timestamp_ms
+  - name: user_id
+    data_type: u64
+  - name: session_id
+    data_type: u64
+  - name: device_type
+    data_type: string
+  - name: event_type
+    data_type: string
+  - name: value
+    data_type: u64
+scenario:
+  name: mini_flink_device_avg_demo_pipeline
+  operation: tumbling_window_grouped_sum
+  group_by:
+    - device_type
+  aggregate_count_as: event_count
+  aggregate_sum_field: value
+  aggregate_sum_as: value_sum
+window:
+  window_type: tumbling
+  size_secs: 1
+  slide_secs: null
+pipeline:
+  - kind: source
+    family: clickstream
+  - kind: map
+    mode: synthetic_clickstream_v1
+  - kind: filter
+    field: event_type
+    op: eq
+    equals: page_view
+  - kind: key_by
+    field: device_type
+  - kind: window
+    size_secs: 1
+  - kind: aggregate
+    count_as: event_count
+    sum_field: value
+    sum_as: value_sum
+    aggregate_functions:
+      - count
+      - sum
+      - avg
+  - kind: sink
+    sink_mode: stdout
+expected_output:
+  aggregate_by: device_type
+  value_field: value
+  expected_group_totals:
+    - key: mobile
+      event_count: 2
+      value_sum: 6
+    - key: desktop
+      event_count: 2
+      value_sum: 8
+    - key: tablet
+      event_count: 2
+      value_sum: 4
+    - key: tv
+      event_count: 2
+      value_sum: 10

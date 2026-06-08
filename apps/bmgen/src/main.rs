@@ -44,8 +44,17 @@ fn run_generate(config_path: &str) -> Result<()> {
     println!("Rows: {}", config.rows);
     println!("Formats: {}", config.formats.join(", "));
     println!("Output: {}", output_dir.display());
-    println!("CSV manifest: {}", output_dir.join("csv/manifest.json").display());
-    println!("JSONL manifest: {}", output_dir.join("jsonl/manifest.json").display());
-    println!("Parquet manifest: {}", output_dir.join("parquet/manifest.json").display());
+    println!(
+        "CSV manifest: {}",
+        output_dir.join("csv/manifest.json").display()
+    );
+    println!(
+        "JSONL manifest: {}",
+        output_dir.join("jsonl/manifest.json").display()
+    );
+    println!(
+        "Parquet manifest: {}",
+        output_dir.join("parquet/manifest.json").display()
+    );
     Ok(())
 }

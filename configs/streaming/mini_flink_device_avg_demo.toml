@@ -1,0 +1,9 @@
+run_name = "mini_flink_device_avg_demo"
+engine = "mini_flink"
+workload_path = "workloads/streaming/jobs/device_avg_demo.yaml"
+duration_secs = 1
+warmup_secs = 0
+repetitions = 1
+event_rate_per_sec = 8
+seed = 1
+correctness_mode = "baseline"

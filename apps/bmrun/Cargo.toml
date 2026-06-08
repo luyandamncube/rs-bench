@@ -17,3 +17,5 @@ bm-engine-duckdb = { path = "../../engines/duckdb" }
 bm-engine-clickhouse = { path = "../../engines/clickhouse" }
 bm-engine-polars = { path = "../../engines/polars" }
 bm-engine-spark = { path = "../../engines/spark" }
+bm-engine-stream-local = { path = "../../engines/stream_local" }
+bm-engine-mini-flink = { path = "../../engines/mini_flink" }

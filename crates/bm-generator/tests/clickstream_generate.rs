@@ -65,5 +65,8 @@ fn clickstream_generation_is_deterministic_for_same_seed() {
     let a = generate_clickstream_rows(&config);
     let b = generate_clickstream_rows(&config);
 
-    assert_eq!(serde_json::to_string(&a).unwrap(), serde_json::to_string(&b).unwrap());
+    assert_eq!(
+        serde_json::to_string(&a).unwrap(),
+        serde_json::to_string(&b).unwrap()
+    );
 }

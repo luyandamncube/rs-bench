@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "apps/bmgen",
+  "apps/bmproduce",
   "apps/bmrun",
   "apps/bmreport",
   "crates/bm-core",
@@ -13,7 +14,9 @@ members = [
   "engines/duckdb",
   "engines/clickhouse",
   "engines/polars",
-  "engines/spark"
+  "engines/spark",
+  "engines/stream_local",
+  "engines/mini_flink"
 ]
 resolver = "2"
 
@@ -36,7 +39,7 @@ sha2 = "0.10"
 sysinfo = "0.30"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
-tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "net", "io-util", "io-std", "signal"] }
 
 [profile.dev]
 debug = "line-tables-only"

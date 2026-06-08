@@ -1,0 +1,11 @@
+[package]
+name = "bm-engine-stream-local"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+bm-engine = { path = "../../crates/bm-engine" }
+bm-schema = { path = "../../crates/bm-schema" }
+chrono.workspace = true
+serde_yaml.workspace = true

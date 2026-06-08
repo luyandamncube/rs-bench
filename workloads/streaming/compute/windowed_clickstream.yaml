@@ -1,0 +1,46 @@
+name: windowed_clickstream_core
+family: clickstream_streaming
+description: Deterministic local streaming workload with one tumbling window aggregate.
+source:
+  family: clickstream
+  event_time_field: event_time
+  key_field: device_type
+schema:
+  - name: event_time
+    data_type: timestamp_ms
+  - name: user_id
+    data_type: u64
+  - name: session_id
+    data_type: u64
+  - name: device_type
+    data_type: string
+  - name: value
+    data_type: u64
+scenario:
+  name: device_tumbling_aggregate
+  operation: tumbling_window_grouped_sum
+  group_by:
+    - device_type
+  aggregate_count_as: event_count
+  aggregate_sum_field: value
+  aggregate_sum_as: value_sum
+window:
+  window_type: tumbling
+  size_secs: 3
+  slide_secs: null
+expected_output:
+  aggregate_by: device_type
+  value_field: value
+  expected_group_totals:
+    - key: mobile
+      event_count: 1800
+      value_sum: 5400
+    - key: desktop
+      event_count: 1800
+      value_sum: 7200
+    - key: tablet
+      event_count: 1800
+      value_sum: 3600
+    - key: tv
+      event_count: 1800
+      value_sum: 9000

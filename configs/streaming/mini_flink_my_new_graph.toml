@@ -1,0 +1,9 @@
+run_name = "mini_flink_my_new_graph"
+engine = "mini_flink"
+workload_path = "workloads/streaming/jobs/my_new_graph.yaml"
+duration_secs = 1
+warmup_secs = 0
+repetitions = 1
+event_rate_per_sec = 8
+seed = 1
+correctness_mode = "baseline"

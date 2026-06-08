@@ -1,9 +1,12 @@
 // engines\duckdb\src\lib.rs
 use bm_engine::adapter::EngineAdapter;
 use bm_engine::error::EngineError;
-use bm_engine::request::{BootstrapRequest, CleanupRequest, PrepareDatasetRequest, RunQueryRequest};
+use bm_engine::request::{
+    BootstrapRequest, CleanupRequest, PrepareDatasetRequest, RunQueryRequest,
+};
 use bm_engine::response::{
-    BootstrapResponse, CleanupResponse, EngineMetadata, PrepareDatasetResponse, QueryExecutionResult,
+    BootstrapResponse, CleanupResponse, EngineMetadata, PrepareDatasetResponse,
+    QueryExecutionResult,
 };
 use chrono::Utc;
 use duckdb::Connection;
@@ -95,8 +98,9 @@ impl EngineAdapter for DuckDbAdapter {
             }
         };
 
-        conn.execute_batch(&sql)
-            .map_err(|e| EngineError::Prepare(format!("failed to register {} view: {e}", format)))?;
+        conn.execute_batch(&sql).map_err(|e| {
+            EngineError::Prepare(format!("failed to register {} view: {e}", format))
+        })?;
 
         Ok(PrepareDatasetResponse {
             setup_started_at: started,
@@ -128,7 +132,8 @@ impl EngineAdapter for DuckDbAdapter {
             let mut row_count = 0_u64;
             while let Some(_row) = rows
                 .next()
-                .map_err(|e| EngineError::Query(format!("row fetch failed: {e}")))? {
+                .map_err(|e| EngineError::Query(format!("row fetch failed: {e}")))?
+            {
                 row_count += 1;
             }
 

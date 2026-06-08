@@ -1,0 +1,9 @@
+run_name = "streaming_mini_flink_clickstream_smoke"
+engine = "mini_flink"
+workload_path = "workloads/streaming/compute/mini_flink_windowed_clickstream.yaml"
+duration_secs = 3
+warmup_secs = 1
+repetitions = 3
+event_rate_per_sec = 2400
+seed = 7
+correctness_mode = "baseline"

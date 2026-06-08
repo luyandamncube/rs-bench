@@ -8,6 +8,10 @@ rs-bench/
 │   │   ├── Cargo.toml
 │   │   └── src
 │   │       └── main.rs
+│   ├── bmproduce
+│   │   ├── Cargo.toml
+│   │   └── src
+│   │       └── main.rs
 │   ├── bmreport
 │   │   ├── Cargo.toml
 │   │   └── src
@@ -15,7 +19,11 @@ rs-bench/
 │   └── bmrun
 │       ├── Cargo.toml
 │       └── src
-│           └── main.rs
+│           ├── main.rs
+│           └── streaming_graphs
+│               ├── device_avg_demo.rs
+│               ├── mod.rs
+│               └── terminal_demo.rs
 ├── configs
 │   ├── datasets
 │   │   ├── clickstream_small.toml
@@ -25,7 +33,13 @@ rs-bench/
 │   │   ├── clickhouse.toml
 │   │   ├── datafusion.toml
 │   │   ├── duckdb.toml
+│   │   ├── mini_flink.toml
 │   │   └── spark.toml
+│   ├── streaming
+│   │   ├── local_stream.toml
+│   │   ├── mini_flink_device_avg_demo.toml
+│   │   ├── mini_flink.toml
+│   │   └── mini_flink_terminal_demo.toml
 │   └── runs
 │       ├── clickhouse_csv_smoke.toml
 │       ├── clickhouse_parquet_smoke.toml
@@ -58,6 +72,7 @@ rs-bench/
 │   │   │   ├── lib.rs
 │   │   │   ├── request.rs
 │   │   │   ├── response.rs
+│   │   │   ├── streaming.rs
 │   │   │   └── validation.rs
 │   │   └── tests
 │   │       └── mock_adapter.rs
@@ -92,13 +107,16 @@ rs-bench/
 │   │       └── summarize.rs
 │   ├── bm-runner
 │   │   ├── Cargo.toml
-│   │   └── src
-│   │       ├── fairness.rs
-│   │       ├── lib.rs
-│   │       ├── orchestrator.rs
-│   │       ├── persistence.rs
-│   │       ├── runner.rs
-│   │       └── timing.rs
+│   │   ├── src
+│   │   │   ├── fairness.rs
+│   │   │   ├── lib.rs
+│   │   │   ├── orchestrator.rs
+│   │   │   ├── persistence.rs
+│   │   │   ├── runner.rs
+│   │   │   └── timing.rs
+│   │   └── tests
+│   │       ├── mini_flink_integration.rs
+│   │       └── streaming_run.rs
 │   └── bm-schema
 │       ├── Cargo.toml
 │       └── src
@@ -108,6 +126,7 @@ rs-bench/
 │           ├── raw_result.rs
 │           ├── run.rs
 │           ├── summary.rs
+│           ├── streaming.rs
 │           └── workload.rs
 ├── datasets
 │   ├── fixtures
@@ -163,7 +182,25 @@ rs-bench/
 │   │   ├── Cargo.toml
 │   │   └── src
 │   │       └── lib.rs
-│   └── spark
+│   ├── spark
+│   │   ├── Cargo.toml
+│   │   └── src
+│   │       └── lib.rs
+│   ├── mini_flink
+│   │   ├── Cargo.toml
+│   │   └── src
+│   │       ├── adapter.rs
+│   │       ├── graph.rs
+│   │       ├── lib.rs
+│   │       ├── record.rs
+│   │       ├── router.rs
+│   │       ├── runtime.rs
+│   │       ├── sink.rs
+│   │       ├── source.rs
+│   │       ├── timer.rs
+│   │       ├── window.rs
+│   │       └── worker.rs
+│   └── stream_local
 │       ├── Cargo.toml
 │       └── src
 │           └── lib.rs
@@ -178,10 +215,14 @@ rs-bench/
 │   │   ├── compare_all.sh
 │   │   ├── run_compare_all.sh
 │   │   ├── run_compare_csv.sh
-│   │   └── run_compare_parquet.sh
+│   │   ├── run_compare_parquet.sh
+│   │   ├── run_streaming_local.sh
+│   │   └── run_streaming_mini_flink.sh
 │   └── release
 │       ├── run_compare_csv.sh
-│       └── run_compare_parquet.sh
+│       ├── run_compare_parquet.sh
+│       ├── run_streaming_local.sh
+│       └── run_streaming_mini_flink.sh
 ├── tests
 │   ├── fixtures
 │   └── integration
@@ -190,24 +231,36 @@ rs-bench/
 │       ├── smoke_datafusion.rs
 │       └── smoke_duckdb.rs
 └── workloads
-    ├── clickstream
-    │   ├── overrides
-    │   │   ├── clickhouse
-    │   │   └── duckdb
-    │   ├── q01_session_filter.sql
-    │   ├── q02_events_by_device.sql
-    │   ├── q03_revenue_by_event_type.sql
-    │   ├── q04_funnel_agg.sql
-    │   └── workload.yaml
+    ├── batch
+    │   └── analytics
+    │       ├── q01_session_filter.sql
+    │       ├── q02_events_by_device.sql
+    │       ├── q03_revenue_by_event_type.sql
+    │       ├── q04_funnel_agg.sql
+    │       ├── q05_sessionized_topn.sql
+    │       ├── q06_country_referrer_rank.sql
+    │       ├── q07_session_funnel_reduce.sql
+    │       └── workload.yaml
     ├── iot
     │   ├── q01_recent_window.sql
     │   ├── q02_device_rollup.sql
     │   ├── q03_spike_detection.sql
     │   ├── q04_bucket_avg.sql
     │   └── workload.yaml
-    └── logs
-        ├── q01_level_filter.sql
-        ├── q02_service_groupby.sql
-        ├── q03_top_errors.sql
-        ├── q04_time_bucket.sql
-        └── workload.yaml
+    ├── logs
+    │   ├── q01_level_filter.sql
+    │   ├── q02_service_groupby.sql
+    │   ├── q03_top_errors.sql
+    │   ├── q04_time_bucket.sql
+    │   └── workload.yaml
+    └── streaming
+        ├── compute
+        │   ├── mini_flink_windowed_clickstream.yaml
+        │   └── windowed_clickstream.yaml
+        ├── ingest
+        ├── jobs
+        │   ├── device_avg_demo.yaml
+        │   ├── generated_pipeline.yaml
+        │   └── terminal_demo.yaml
+        ├── normalize
+        └── serve

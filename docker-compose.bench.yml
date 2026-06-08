@@ -14,9 +14,9 @@ services:
       nofile:
         soft: 262144
         hard: 262144
-    cpus: 6.0
-    mem_limit: 8g
-    memswap_limit: 8g
+    cpus: 2.0
+    mem_limit: 1g
+    memswap_limit: 1g
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8123/ping"]
       interval: 5s

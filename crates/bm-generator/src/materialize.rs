@@ -56,7 +56,10 @@ fn write_shared_metadata(root: &Path, config_json: &[u8]) -> Result<()> {
         ]
     });
 
-    fs::write(root.join("schema.json"), serde_json::to_vec_pretty(&schema)?)?;
+    fs::write(
+        root.join("schema.json"),
+        serde_json::to_vec_pretty(&schema)?,
+    )?;
     Ok(())
 }
 

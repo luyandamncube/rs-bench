@@ -1,9 +1,12 @@
 // engines/spark/src/lib.rs
 use bm_engine::adapter::EngineAdapter;
 use bm_engine::error::EngineError;
-use bm_engine::request::{BootstrapRequest, CleanupRequest, PrepareDatasetRequest, RunQueryRequest};
+use bm_engine::request::{
+    BootstrapRequest, CleanupRequest, PrepareDatasetRequest, RunQueryRequest,
+};
 use bm_engine::response::{
-    BootstrapResponse, CleanupResponse, EngineMetadata, PrepareDatasetResponse, QueryExecutionResult,
+    BootstrapResponse, CleanupResponse, EngineMetadata, PrepareDatasetResponse,
+    QueryExecutionResult,
 };
 use chrono::Utc;
 use std::fs;
@@ -108,7 +111,10 @@ impl EngineAdapter for SparkAdapter {
             setup_started_at: started,
             setup_elapsed_ms: t0.elapsed().as_millis() as u64,
             registered_objects: vec!["spark_input".into()],
-            notes: vec![format!("prepared {} file: {}", req.dataset_format, first_file)],
+            notes: vec![format!(
+                "prepared {} file: {}",
+                req.dataset_format, first_file
+            )],
         })
     }
 

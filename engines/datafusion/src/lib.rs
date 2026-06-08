@@ -1,9 +1,12 @@
 // engines\datafusion\src\lib.rs
 use bm_engine::adapter::EngineAdapter;
 use bm_engine::error::EngineError;
-use bm_engine::request::{BootstrapRequest, CleanupRequest, PrepareDatasetRequest, RunQueryRequest};
+use bm_engine::request::{
+    BootstrapRequest, CleanupRequest, PrepareDatasetRequest, RunQueryRequest,
+};
 use bm_engine::response::{
-    BootstrapResponse, CleanupResponse, EngineMetadata, PrepareDatasetResponse, QueryExecutionResult,
+    BootstrapResponse, CleanupResponse, EngineMetadata, PrepareDatasetResponse,
+    QueryExecutionResult,
 };
 use chrono::Utc;
 use datafusion::prelude::{CsvReadOptions, ParquetReadOptions, SessionContext};
@@ -24,7 +27,8 @@ impl DataFusionAdapter {
     }
 
     fn runtime() -> Result<Runtime, EngineError> {
-        Runtime::new().map_err(|e| EngineError::Other(format!("failed to create tokio runtime: {e}")))
+        Runtime::new()
+            .map_err(|e| EngineError::Other(format!("failed to create tokio runtime: {e}")))
     }
 }
 
@@ -105,7 +109,7 @@ impl EngineAdapter for DataFusionAdapter {
             registered_objects: vec![self.table_name.clone()],
             notes: vec![format!("registered {} file: {}", format, first_file)],
         })
-    }    
+    }
 
     fn run_query(&mut self, req: RunQueryRequest) -> Result<QueryExecutionResult, EngineError> {
         let started = Utc::now();

@@ -1,0 +1,4 @@
+keyed_parallelism = 4
+channel_capacity = 256
+sink_mode = "file"
+sink_subdir = "results/streaming_sinks"

@@ -1,6 +1,7 @@
 // crates\bm-report\src\lib.rs
 use anyhow::{Context, Result};
 use bm_schema::raw_result::RawObservation;
+use bm_schema::streaming::{StreamingRawObservation, StreamingSummary};
 use bm_schema::summary::QuerySummary;
 use std::collections::BTreeMap;
 use std::fs;
@@ -10,7 +11,7 @@ pub fn summarize_run(input_path: &str) -> Result<(Vec<QuerySummary>, PathBuf)> {
     let observations = load_jsonl(input_path)?;
     let summaries = build_query_summaries(&observations);
 
-    let output_path = output_summary_path(input_path)?;
+    let output_path = output_summary_path(input_path, "query_summary.json")?;
     fs::write(&output_path, serde_json::to_vec_pretty(&summaries)?)?;
 
     Ok((summaries, output_path))
@@ -24,13 +25,45 @@ pub fn compare_runs(input_paths: &[String]) -> Result<(Vec<QuerySummary>, PathBu
     let mut all_observations = Vec::new();
 
     for input_path in input_paths {
-        let observations = load_jsonl(input_path)?;
-        all_observations.extend(observations);
+        all_observations.extend(load_jsonl(input_path)?);
     }
 
     let summaries = build_query_summaries(&all_observations);
 
-    let output_path = comparison_output_path()?;
+    let output_path = comparison_output_path("comparison_summary.json");
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+
+    fs::write(&output_path, serde_json::to_vec_pretty(&summaries)?)?;
+
+    Ok((summaries, output_path))
+}
+
+pub fn summarize_streaming_run(input_path: &str) -> Result<(Vec<StreamingSummary>, PathBuf)> {
+    let observations = load_streaming_jsonl(input_path)?;
+    let summaries = build_streaming_summaries(&observations);
+
+    let output_path = output_summary_path(input_path, "streaming_summary.json")?;
+    fs::write(&output_path, serde_json::to_vec_pretty(&summaries)?)?;
+
+    Ok((summaries, output_path))
+}
+
+pub fn compare_streaming_runs(input_paths: &[String]) -> Result<(Vec<StreamingSummary>, PathBuf)> {
+    if input_paths.is_empty() {
+        anyhow::bail!("streaming compare requires at least one input path");
+    }
+
+    let mut all_observations = Vec::new();
+
+    for input_path in input_paths {
+        all_observations.extend(load_streaming_jsonl(input_path)?);
+    }
+
+    let summaries = build_streaming_summaries(&all_observations);
+
+    let output_path = comparison_output_path("streaming_comparison_summary.json");
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent)?;
     }
@@ -53,6 +86,30 @@ fn load_jsonl(path: &str) -> Result<Vec<RawObservation>> {
 
         let row: RawObservation = serde_json::from_str(line)
             .with_context(|| format!("failed to parse JSONL line {} in {}", idx + 1, path))?;
+        rows.push(row);
+    }
+
+    Ok(rows)
+}
+
+fn load_streaming_jsonl(path: &str) -> Result<Vec<StreamingRawObservation>> {
+    let raw = fs::read_to_string(path)
+        .with_context(|| format!("failed to read streaming observations file: {path}"))?;
+
+    let mut rows = Vec::new();
+
+    for (idx, line) in raw.lines().enumerate() {
+        if line.trim().is_empty() {
+            continue;
+        }
+
+        let row: StreamingRawObservation = serde_json::from_str(line).with_context(|| {
+            format!(
+                "failed to parse streaming JSONL line {} in {}",
+                idx + 1,
+                path
+            )
+        })?;
         rows.push(row);
     }
 
@@ -159,6 +216,54 @@ fn build_query_summaries(rows: &[RawObservation]) -> Vec<QuerySummary> {
     summaries
 }
 
+fn build_streaming_summaries(rows: &[StreamingRawObservation]) -> Vec<StreamingSummary> {
+    let mut groups: BTreeMap<(String, String, String, String), Vec<&StreamingRawObservation>> =
+        BTreeMap::new();
+
+    for row in rows {
+        let key = (
+            row.engine_name.clone(),
+            row.engine_version.clone(),
+            row.workload_name.clone(),
+            row.workload_family.clone(),
+        );
+        groups.entry(key).or_default().push(row);
+    }
+
+    let mut summaries = Vec::new();
+
+    for ((engine_name, engine_version, workload_name, workload_family), entries) in groups {
+        let attempts = entries.len() as u32;
+        let successes = entries.iter().filter(|row| row.success).count() as u32;
+        let correctness_passes = entries
+            .iter()
+            .filter(|row| row.success && row.correctness_passed)
+            .count() as u32;
+
+        summaries.push(StreamingSummary {
+            engine_name,
+            engine_version,
+            workload_name,
+            workload_family,
+            attempts,
+            successes,
+            correctness_passes,
+            mean_startup_time_ms: mean_f64(&entries, |row| row.startup_time_ms as f64),
+            mean_throughput_events_per_sec: mean_f64(&entries, |row| row.throughput_events_per_sec),
+            mean_latency_p50_ms: mean_f64(&entries, |row| row.latency_p50_ms),
+            mean_latency_p95_ms: mean_f64(&entries, |row| row.latency_p95_ms),
+            mean_latency_p99_ms: mean_f64(&entries, |row| row.latency_p99_ms),
+            total_processed_events: entries.iter().map(|row| row.processed_events).sum(),
+            total_dropped_events: entries.iter().map(|row| row.dropped_events).sum(),
+            total_failed_events: entries.iter().map(|row| row.failed_events).sum(),
+            total_records_emitted: entries.iter().map(|row| row.records_emitted).sum(),
+            total_emitted_windows: entries.iter().map(|row| row.emitted_windows).sum(),
+        });
+    }
+
+    summaries
+}
+
 fn summarize_elapsed(values: &[u64]) -> (f64, u64, u64) {
     if values.is_empty() {
         return (0.0, 0, 0);
@@ -172,18 +277,24 @@ fn summarize_elapsed(values: &[u64]) -> (f64, u64, u64) {
     (mean, min, max)
 }
 
-fn output_summary_path(input_path: &str) -> Result<PathBuf> {
+fn mean_f64<T>(values: &[T], accessor: impl Fn(&T) -> f64) -> f64 {
+    if values.is_empty() {
+        return 0.0;
+    }
+
+    values.iter().map(accessor).sum::<f64>() / values.len() as f64
+}
+
+fn output_summary_path(input_path: &str, filename: &str) -> Result<PathBuf> {
     let input = Path::new(input_path);
     let parent = input
         .parent()
         .context("input observations path has no parent directory")?;
-    Ok(parent.join("query_summary.json"))
+    Ok(parent.join(filename))
 }
 
-fn comparison_output_path() -> Result<PathBuf> {
-    Ok(PathBuf::from("results")
-        .join("comparisons")
-        .join("comparison_summary.json"))
+fn comparison_output_path(filename: &str) -> PathBuf {
+    PathBuf::from("results").join("comparisons").join(filename)
 }
 
 pub fn print_terminal_summary(rows: &[QuerySummary]) {
@@ -214,6 +325,36 @@ pub fn print_terminal_summary(rows: &[QuerySummary]) {
             row.mean_hot_ms,
             row.min_all_ms,
             row.max_all_ms
+        );
+    }
+}
+
+pub fn print_terminal_streaming_summary(rows: &[StreamingSummary]) {
+    println!(
+        "{:<14} {:<22} {:<8} {:<8} {:<10} {:<14} {:<12} {:<12} {:<12}",
+        "Engine",
+        "Workload",
+        "Runs",
+        "OK",
+        "Correct",
+        "Throughput",
+        "P50(ms)",
+        "P95(ms)",
+        "P99(ms)"
+    );
+
+    for row in rows {
+        println!(
+            "{:<14} {:<22} {:<8} {:<8} {:<10} {:<14.1} {:<12.3} {:<12.3} {:<12.3}",
+            row.engine_name,
+            row.workload_name,
+            row.attempts,
+            row.successes,
+            row.correctness_passes,
+            row.mean_throughput_events_per_sec,
+            row.mean_latency_p50_ms,
+            row.mean_latency_p95_ms,
+            row.mean_latency_p99_ms
         );
     }
 }

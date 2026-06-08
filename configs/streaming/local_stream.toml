@@ -1,0 +1,9 @@
+run_name = "streaming_local_clickstream_smoke"
+engine = "stream_local"
+workload_path = "workloads/streaming/compute/windowed_clickstream.yaml"
+duration_secs = 3
+warmup_secs = 1
+repetitions = 3
+event_rate_per_sec = 2400
+seed = 7
+correctness_mode = "baseline"

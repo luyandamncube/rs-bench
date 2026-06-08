@@ -1,9 +1,12 @@
 // engines\clickhouse\src\lib.rs
 use bm_engine::adapter::EngineAdapter;
 use bm_engine::error::EngineError;
-use bm_engine::request::{BootstrapRequest, CleanupRequest, PrepareDatasetRequest, RunQueryRequest};
+use bm_engine::request::{
+    BootstrapRequest, CleanupRequest, PrepareDatasetRequest, RunQueryRequest,
+};
 use bm_engine::response::{
-    BootstrapResponse, CleanupResponse, EngineMetadata, PrepareDatasetResponse, QueryExecutionResult,
+    BootstrapResponse, CleanupResponse, EngineMetadata, PrepareDatasetResponse,
+    QueryExecutionResult,
 };
 use chrono::Utc;
 use clickhouse::{Client, Row};
@@ -14,11 +17,8 @@ use std::fs::File;
 use std::time::Instant;
 use tokio::runtime::Runtime;
 
-use arrow_array::{
-    Float64Array, RecordBatch, StringArray, UInt32Array, UInt64Array,
-};
+use arrow_array::{Float64Array, RecordBatch, StringArray, UInt32Array, UInt64Array};
 use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
-
 
 #[derive(Clone)]
 pub struct ClickHouseAdapter {
@@ -48,15 +48,17 @@ fn read_clickstream_rows_from_csv(path: &str) -> Result<Vec<ClickstreamInsertRow
 
     let mut rows = Vec::new();
     for record in rdr.deserialize::<ClickstreamInsertRow>() {
-        let row = record
-            .map_err(|e| EngineError::Prepare(format!("csv deserialize failed: {e}")))?;
+        let row =
+            record.map_err(|e| EngineError::Prepare(format!("csv deserialize failed: {e}")))?;
         rows.push(row);
     }
 
     Ok(rows)
 }
 
-fn read_clickstream_rows_from_parquet(path: &str) -> Result<Vec<ClickstreamInsertRow>, EngineError> {
+fn read_clickstream_rows_from_parquet(
+    path: &str,
+) -> Result<Vec<ClickstreamInsertRow>, EngineError> {
     let file = File::open(path)
         .map_err(|e| EngineError::Prepare(format!("failed to open parquet: {e}")))?;
 
@@ -161,39 +163,67 @@ impl ClickHouseAdapter {
     }
 
     fn runtime() -> Result<Runtime, EngineError> {
-        Runtime::new().map_err(|e| EngineError::Other(format!("failed to create tokio runtime: {e}")))
+        Runtime::new()
+            .map_err(|e| EngineError::Other(format!("failed to create tokio runtime: {e}")))
     }
 
     fn load_config(&mut self) -> Result<(String, String, String), EngineError> {
         let path = "configs/engines/clickhouse.toml";
-        let raw = fs::read_to_string(path)
-            .map_err(|e| EngineError::Bootstrap(format!("failed to read clickhouse config: {e}")))?;
-        let value: toml::Value = toml::from_str(&raw)
-            .map_err(|e| EngineError::Bootstrap(format!("failed to parse clickhouse config: {e}")))?;
+        let raw = fs::read_to_string(path).map_err(|e| {
+            EngineError::Bootstrap(format!("failed to read clickhouse config: {e}"))
+        })?;
+        let value: toml::Value = toml::from_str(&raw).map_err(|e| {
+            EngineError::Bootstrap(format!("failed to parse clickhouse config: {e}"))
+        })?;
 
         self.database = std::env::var("CLICKHOUSE_DATABASE")
             .ok()
-            .or_else(|| value.get("database").and_then(|v| v.as_str()).map(str::to_string))
+            .or_else(|| {
+                value
+                    .get("database")
+                    .and_then(|v| v.as_str())
+                    .map(str::to_string)
+            })
             .unwrap_or_else(|| "benchmark".to_string());
 
         self.table_name = std::env::var("CLICKHOUSE_TABLE_NAME")
             .ok()
-            .or_else(|| value.get("table_name").and_then(|v| v.as_str()).map(str::to_string))
+            .or_else(|| {
+                value
+                    .get("table_name")
+                    .and_then(|v| v.as_str())
+                    .map(str::to_string)
+            })
             .unwrap_or_else(|| "benchmark_table".to_string());
 
         let url = std::env::var("CLICKHOUSE_URL")
             .ok()
-            .or_else(|| value.get("url").and_then(|v| v.as_str()).map(str::to_string))
+            .or_else(|| {
+                value
+                    .get("url")
+                    .and_then(|v| v.as_str())
+                    .map(str::to_string)
+            })
             .unwrap_or_else(|| "http://localhost:8123".to_string());
 
         let user = std::env::var("CLICKHOUSE_USER")
             .ok()
-            .or_else(|| value.get("user").and_then(|v| v.as_str()).map(str::to_string))
+            .or_else(|| {
+                value
+                    .get("user")
+                    .and_then(|v| v.as_str())
+                    .map(str::to_string)
+            })
             .unwrap_or_else(|| "benchmark".to_string());
 
         let password = std::env::var("CLICKHOUSE_PASSWORD")
             .ok()
-            .or_else(|| value.get("password").and_then(|v| v.as_str()).map(str::to_string))
+            .or_else(|| {
+                value
+                    .get("password")
+                    .and_then(|v| v.as_str())
+                    .map(str::to_string)
+            })
             .unwrap_or_else(|| "benchmark".to_string());
 
         Ok((url, user, password))
@@ -340,7 +370,10 @@ impl EngineAdapter for ClickHouseAdapter {
             setup_started_at: started,
             setup_elapsed_ms: t0.elapsed().as_millis() as u64,
             registered_objects: vec![self.table_name.clone()],
-            notes: vec![format!("loaded {} file into clickhouse: {}", format, data_file)],
+            notes: vec![format!(
+                "loaded {} file into clickhouse: {}",
+                format, data_file
+            )],
         })
     }
 

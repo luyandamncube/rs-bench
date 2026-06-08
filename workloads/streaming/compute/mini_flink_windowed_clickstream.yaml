@@ -1,0 +1,76 @@
+name: mini_flink_windowed_clickstream
+family: clickstream_streaming
+description: Mini-Flink fixed pipeline benchmark with processing-time tumbling windows.
+source:
+  family: clickstream
+  event_time_field: event_time
+  key_field: device_type
+parse:
+  mode: synthetic_clickstream_v1
+filter:
+  field: event_type
+  op: eq
+  equals: page_view
+schema:
+  - name: event_time
+    data_type: timestamp_ms
+  - name: user_id
+    data_type: u64
+  - name: session_id
+    data_type: u64
+  - name: device_type
+    data_type: string
+  - name: event_type
+    data_type: string
+  - name: value
+    data_type: u64
+scenario:
+  name: parse_filter_key_tumbling_aggregate
+  operation: tumbling_window_grouped_sum
+  group_by:
+    - device_type
+  aggregate_count_as: event_count
+  aggregate_sum_field: value
+  aggregate_sum_as: value_sum
+window:
+  window_type: tumbling
+  size_secs: 3
+  slide_secs: null
+pipeline:
+  - kind: source
+    family: clickstream
+  - kind: map
+    mode: synthetic_clickstream_v1
+  - kind: filter
+    field: event_type
+    op: eq
+    equals: page_view
+  - kind: key_by
+    field: device_type
+  - kind: window
+    size_secs: 3
+  - kind: aggregate
+    aggregate_functions:
+      - count
+      - sum
+    count_as: event_count
+    sum_field: value
+    sum_as: value_sum
+  - kind: sink
+    sink_mode: file
+expected_output:
+  aggregate_by: device_type
+  value_field: value
+  expected_group_totals:
+    - key: mobile
+      event_count: 1800
+      value_sum: 5400
+    - key: desktop
+      event_count: 1800
+      value_sum: 7200
+    - key: tablet
+      event_count: 1800
+      value_sum: 3600
+    - key: tv
+      event_count: 1800
+      value_sum: 9000

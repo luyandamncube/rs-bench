@@ -16,3 +16,6 @@ anyhow.workspace = true
 uuid.workspace = true
 csv = "1"
 serde_yaml = "0.9"
+
+[dev-dependencies]
+bm-engine-mini-flink = { path = "../../engines/mini_flink" }

@@ -1,14 +1,17 @@
 // engines\polars\src\lib.rs
 use bm_engine::adapter::EngineAdapter;
 use bm_engine::error::EngineError;
-use bm_engine::request::{BootstrapRequest, CleanupRequest, PrepareDatasetRequest, RunQueryRequest};
+use bm_engine::request::{
+    BootstrapRequest, CleanupRequest, PrepareDatasetRequest, RunQueryRequest,
+};
 use bm_engine::response::{
-    BootstrapResponse, CleanupResponse, EngineMetadata, PrepareDatasetResponse, QueryExecutionResult,
+    BootstrapResponse, CleanupResponse, EngineMetadata, PrepareDatasetResponse,
+    QueryExecutionResult,
 };
 use chrono::Utc;
 use polars::lazy::dsl::{col, len, when};
-use polars::prelude::*;
 use polars::prelude::PlPath;
+use polars::prelude::*;
 use std::time::Instant;
 
 pub struct PolarsAdapter {
@@ -105,7 +108,10 @@ impl EngineAdapter for PolarsAdapter {
             setup_started_at: started,
             setup_elapsed_ms: t0.elapsed().as_millis() as u64,
             registered_objects: vec!["polars_lazy_source".into()],
-            notes: vec![format!("prepared {} file: {}", req.dataset_format, first_file)],
+            notes: vec![format!(
+                "prepared {} file: {}",
+                req.dataset_format, first_file
+            )],
         })
     }
 
@@ -169,8 +175,7 @@ impl EngineAdapter for PolarsAdapter {
                 ])
                 .sort(
                     ["purchase_revenue", "purchase_count", "device_type"],
-                    SortMultipleOptions::default()
-                        .with_order_descending_multi([true, true, false]),
+                    SortMultipleOptions::default().with_order_descending_multi([true, true, false]),
                 )
                 .collect()
                 .map_err(|e| EngineError::Query(format!("polars q04 failed: {e}"))),
@@ -186,8 +191,7 @@ impl EngineAdapter for PolarsAdapter {
                 .filter(col("event_count").gt_eq(lit(20u32)))
                 .sort(
                     ["total_revenue", "session_count", "avg_latency_ms"],
-                    SortMultipleOptions::default()
-                        .with_order_descending_multi([true, true, false]),
+                    SortMultipleOptions::default().with_order_descending_multi([true, true, false]),
                 )
                 .limit(10)
                 .collect()
@@ -207,9 +211,7 @@ impl EngineAdapter for PolarsAdapter {
                             .with_order_descending_multi([false, true, false]),
                     )?;
 
-                    let countries = sorted
-                        .column("country_code")?
-                        .str()?;
+                    let countries = sorted.column("country_code")?.str()?;
 
                     let mut ranks = Vec::with_capacity(sorted.height());
                     let mut previous_country: Option<&str> = None;

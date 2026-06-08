@@ -87,7 +87,7 @@ Initial run config:
 ```
 run_name = "comparison_smoke"
 engine = "mock"
-workload_path = "workloads/clickstream/workload.yaml"
+workload_path = "workloads/batch/analytics/workload.yaml"
 dataset_manifest_path = "datasets/generated/clickstream_small/csv/manifest.json"
 repetitions = 3
 capture_plans = false
@@ -235,8 +235,8 @@ This preserves raw benchmark attempts rather than only storing derived averages.
 ### Configs / workloads
 
 - `configs/runs/comparison_smoke.toml`
-- `workloads/clickstream/workload.yaml`
-- `workloads/clickstream/q01_session_filter.sql`
+- `workloads/batch/analytics/workload.yaml`
+- `workloads/batch/analytics/q01_session_filter.sql`
 
 ### Output
 

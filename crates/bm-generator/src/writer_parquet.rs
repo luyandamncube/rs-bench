@@ -1,9 +1,7 @@
 // crates\bm-generator\src\writer_parquet.rs
 use crate::families::clickstream::ClickstreamRow;
 use anyhow::Result;
-use arrow_array::{
-    ArrayRef, Float64Array, RecordBatch, StringArray, UInt32Array, UInt64Array,
-};
+use arrow_array::{ArrayRef, Float64Array, RecordBatch, StringArray, UInt32Array, UInt64Array};
 use arrow_schema::{DataType, Field, Schema};
 use parquet::arrow::ArrowWriter;
 use std::fs::File;

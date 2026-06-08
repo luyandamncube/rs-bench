@@ -1,7 +1,8 @@
 // crates\bm-schema\src\lib.rs
 pub mod dataset;
-pub mod workload;
-pub mod run;
-pub mod raw_result;
-pub mod summary;
 pub mod ranking;
+pub mod raw_result;
+pub mod run;
+pub mod streaming;
+pub mod summary;
+pub mod workload;
